@@ -11,7 +11,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Koa = require("koa");
 const bodyParser = require("koa-bodyparser");
 const log4js = require("log4js");
+const jwt = require("koa-jwt");
 const routes_1 = require("./src/routes");
+const privateRoutes_1 = require("./src/privateRoutes");
 const typeorm_1 = require("typeorm");
 const config_1 = require("./config");
 const model_1 = require("./src/model");
@@ -54,7 +56,7 @@ typeorm_1.createConnection(process.env['DATABASE'] ||
     app.use((ctx, next) => __awaiter(this, void 0, void 0, function* () {
         ctx.set('Access-Control-Allow-Origin', '*');
         ctx.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-        ctx.set('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
+        ctx.set('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, authorization');
         if (ctx.method === 'OPTIONS') {
             ctx.status = 204;
         }
@@ -65,6 +67,9 @@ typeorm_1.createConnection(process.env['DATABASE'] ||
     app.use(bodyParser());
     app.use(routes_1.default.routes());
     app.use(routes_1.default.allowedMethods());
+    app.use(jwt({ secret: config_1.default.Token.Secret }));
+    app.use(privateRoutes_1.default.routes());
+    app.use(privateRoutes_1.default.allowedMethods());
     app.listen(3000, () => { console.log('Server is running at port  %s', 3000); });
 })).catch(e => {
     console.log(e);

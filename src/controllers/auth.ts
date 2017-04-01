@@ -1,23 +1,24 @@
 import {Context} from 'koa'
-import {User, Token} from '../model'
+import {User, Token, SignUp, SignIn} from '../model'
 import * as crypto from 'crypto'
 import {getEntityManager} from 'typeorm'
 import * as Bluebird from 'bluebird'
 import tp from '../mail'
 import * as uuid from 'uuid'
 import config from '../../config'
+import { createToken } from '../utils'
 
 
 export const signin = async(ctx: Context) => {
 
-    let u = {
+    let u : SignIn = {
         account: ctx.request.body.account,
         password: ctx.request.body.password
     };
 
     const userRep = getEntityManager().getRepository(User);
 
-    let user :User = await userRep
+    let user: User = await userRep
         .createQueryBuilder("user")
         .where("user.username= :account OR user.email= :account")
         .setParameters({account: u.account})
@@ -29,24 +30,32 @@ export const signin = async(ctx: Context) => {
 
     let password_hash = (await Bluebird.promisify(crypto.pbkdf2)(u.password, user.salt, 64000, 32, 'sha256')).toString('hex');
 
-    if (user.password_hash != password_hash){
+    if (user.password_hash != password_hash) {
         ctx.throw("password_error", 400)
     }
 
-    ctx.body = user
+    const token = createToken({
+        id: user.id
+    })
+
+    ctx.body = {
+        user,
+        token
+    }
 
 };
 
 export const signup = async(ctx: Context) => {
 
-    let u = {
+    let u: SignUp = {
         username: ctx.request.body.username,
         name: ctx.request.body.name,
         email: ctx.request.body.email,
         password: ctx.request.body.password,
     };
 
-    if(!u.password || !u.email || !u.username){
+
+    if (!u.password || !u.email || !u.username) {
         ctx.throw(400)
     }
 
@@ -54,16 +63,16 @@ export const signup = async(ctx: Context) => {
     const userRep = getEntityManager().getRepository(User);
 
     // check user exists
-    let exists :User = await userRep
+    let exists: User = await userRep
         .createQueryBuilder("user")
         .where("user.username= :username OR user.email= :email")
-        .setParameters({ username: u.username, email: u.email})
+        .setParameters({username: u.username, email: u.email})
         .getOne();
 
-    if(exists){
-        if(exists.email == u.email){
+    if (exists) {
+        if (exists.email == u.email) {
             ctx.throw("email_exists", 400)
-        } else if( exists.username == u.username){
+        } else if (exists.username == u.username) {
             ctx.throw("username_exists", 400)
         }
     }
@@ -72,8 +81,7 @@ export const signup = async(ctx: Context) => {
 
     let password_hash = (await Bluebird.promisify(crypto.pbkdf2)(u.password, salt, 64000, 32, 'sha256')).toString('hex');
 
-    let newUser = new User();
-    Object.assign(newUser, {
+    let newUser = new User({
         name: u.name,
         username: u.username,
         email: u.email,
@@ -89,18 +97,18 @@ export const signup = async(ctx: Context) => {
         updated_at: new Date()
     });
 
+
     const user = await getEntityManager().persist(newUser);
 
     const key = uuid.v1();
-    let token :Token = new Token();
-    Object.assign(token, {
+    let _token: Token = new Token({
         key: key,
         user_id: user.id,
         data: user.email,
         type: 'activate'
     });
 
-    await getEntityManager().persist(token);
+    await getEntityManager().persist(_token);
     await tp.sendMail({
         from: config.Mail.SMTP_USERNAME,
         to: user.email,
@@ -108,38 +116,45 @@ export const signup = async(ctx: Context) => {
         text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate.html?${key}`
     });
 
-    ctx.body = user
+    const token = createToken({
+        id: user.id
+    })
+
+    ctx.body = {
+        user,
+        token
+    }
 };
 
-export const forgot = async (ctx: Context) => {
+export const forgot = async(ctx: Context) => {
 
     let u = {
         account: ctx.request.body.account
     };
-    if(!u.account){
+    if (!u.account) {
         ctx.throw(400)
     }
 
     const userRep = getEntityManager().getRepository(User);
 
-    let user :User = await userRep
+    let user: User = await userRep
         .createQueryBuilder("user")
         .where("user.username= :account OR user.email= :account")
-        .setParameters({ account: u.account })
+        .setParameters({account: u.account})
         .getOne();
 
-    if(!user){
-        ctx.throw("user not exists",400)
+    if (!user) {
+        ctx.throw("user not exists", 400)
     }
 
     const key = uuid.v1();
-    let token :Token = new Token();
-    Object.assign(token, {
+    let token: Token = new Token({
         key: key,
         user_id: user.id,
         data: user.email,
         type: 'activate'
     });
+
 
     await getEntityManager().persist(token);
 
@@ -163,22 +178,15 @@ export const resetPassword = async(ctx: Context) => {
     }
 
     const tokenReq = getEntityManager().getRepository(Token);
-    let token: Token = await tokenReq
-        .createQueryBuilder("token")
-        .where("token.key = :key AND token.user_id = :user_id")
-        .setParameters({key: u.key, user_id: u.user_id})
-        .getOne();
+    let token: Token = await tokenReq.findOne({key: u.key, user_id: u.user_id});
+
 
     if (!token) {
         ctx.throw("key exceed the time limit", 400)
     }
 
     const userRep = getEntityManager().getRepository(User);
-    let user: User = await userRep
-        .createQueryBuilder("user")
-        .where("user.id = :user_id")
-        .setParameters({user_id: u.user_id})
-        .getOne();
+    let user: User = await userRep.findOneById(u.user_id);
 
     if (!user) {
         ctx.throw("user not exists", 400)
@@ -191,7 +199,9 @@ export const resetPassword = async(ctx: Context) => {
 
     user.password_hash = password_hash;
 
-    ctx.body = await getEntityManager().persist(user)
+    ctx.body = await getEntityManager().persist(user);
+
+    await tokenReq.remove(token)
 
 };
 
@@ -199,10 +209,39 @@ export const activate = async(ctx: Context) => {
 
     let u = {
         key: ctx.request.body.key
+    };
+
+    if (!u.key) {
+        ctx.throw(400);
     }
-    if(!u.key) {
+    const tokenReq = getEntityManager().getRepository(Token);
+    const userReq = getEntityManager().getRepository(User);
 
+    let token :Token =  await tokenReq.findOne({ key: u.key});
+
+    if(!token) {
+        ctx.throw(400)
     }
 
+    let user :User= await userReq.findOne({ id: token.user_id })
+    user.active = true;
+    user.email = token.data;
 
+    ctx.body = await userReq.persist(user);
+
+    let tokens :Token[] = await tokenReq.find({ user_id: user.id, type: 'activate' })
+
+    await tokenReq.remove(tokens)
+
+};
+
+
+export const authUser = async(ctx: Context) => {
+    const {user} = ctx.state
+    const userReq = getEntityManager().getRepository(User);
+
+    let u :User = await userReq.findOne({id: user.id})
+    u.handleAvatar()
+
+    ctx.body = u
 }

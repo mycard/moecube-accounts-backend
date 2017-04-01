@@ -11,7 +11,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
 const ColumnTypes_1 = require("typeorm/metadata/types/ColumnTypes");
+const path = require("path");
 let User = class User {
+    constructor(props) {
+        this.handleAvatar = () => {
+            if (this.avatar) {
+                if (this.avatar.substring(0, 16) == '/uploads/default') {
+                    this.avatar = `https://ygobbs.com${this.avatar}`;
+                }
+                else {
+                    this.avatar = path.join('https://r.my-card.in', this.avatar);
+                }
+            }
+            else {
+                this.avatar = 'https://r.my-card.in/accounts/images/default_avatar.jpg';
+            }
+        };
+        Object.assign(this, props);
+    }
 };
 __decorate([
     typeorm_1.PrimaryGeneratedColumn(ColumnTypes_1.ColumnTypes.INTEGER),
@@ -22,7 +39,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "username", void 0);
 __decorate([
-    typeorm_1.Column(ColumnTypes_1.ColumnTypes.STRING, { unique: true, nullable: true }),
+    typeorm_1.Column(ColumnTypes_1.ColumnTypes.STRING, { nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "name", void 0);
 __decorate([
@@ -50,30 +67,34 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "avatar", void 0);
 __decorate([
-    typeorm_1.Column(ColumnTypes_1.ColumnTypes.STRING, { nullable: true }),
+    typeorm_1.Column(ColumnTypes_1.ColumnTypes.STRING, { nullable: false }),
     __metadata("design:type", String)
 ], User.prototype, "locale", void 0);
 __decorate([
-    typeorm_1.Column(ColumnTypes_1.ColumnTypes.STRING, { nullable: true }),
+    typeorm_1.Column(ColumnTypes_1.ColumnTypes.STRING, { nullable: false }),
     __metadata("design:type", String)
 ], User.prototype, "registration_ip_address", void 0);
 __decorate([
-    typeorm_1.Column(ColumnTypes_1.ColumnTypes.STRING, { nullable: true }),
+    typeorm_1.Column(ColumnTypes_1.ColumnTypes.STRING, { nullable: false }),
     __metadata("design:type", String)
 ], User.prototype, "ip_address", void 0);
 __decorate([
-    typeorm_1.Column(ColumnTypes_1.ColumnTypes.DATETIME, { nullable: true }),
+    typeorm_1.Column(ColumnTypes_1.ColumnTypes.DATETIME, { nullable: false }),
     __metadata("design:type", Date)
 ], User.prototype, "created_at", void 0);
 __decorate([
-    typeorm_1.Column(ColumnTypes_1.ColumnTypes.DATETIME, { nullable: true }),
+    typeorm_1.Column(ColumnTypes_1.ColumnTypes.DATETIME, { nullable: false }),
     __metadata("design:type", Date)
 ], User.prototype, "updated_at", void 0);
 User = __decorate([
-    typeorm_1.Entity("users")
+    typeorm_1.Entity("users"),
+    __metadata("design:paramtypes", [User])
 ], User);
 exports.User = User;
 let Token = class Token {
+    constructor(props) {
+        Object.assign(this, props);
+    }
 };
 __decorate([
     typeorm_1.PrimaryColumn(ColumnTypes_1.ColumnTypes.STRING),
@@ -92,7 +113,14 @@ __decorate([
     __metadata("design:type", String)
 ], Token.prototype, "data", void 0);
 Token = __decorate([
-    typeorm_1.Entity("tokens")
+    typeorm_1.Entity("tokens"),
+    __metadata("design:paramtypes", [Token])
 ], Token);
 exports.Token = Token;
+class SignIn {
+    constructor(props) {
+        Object.assign(this, props);
+    }
+}
+exports.SignIn = SignIn;
 //# sourceMappingURL=model.js.map

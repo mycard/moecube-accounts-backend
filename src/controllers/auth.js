@@ -15,6 +15,7 @@ const Bluebird = require("bluebird");
 const mail_1 = require("../mail");
 const uuid = require("uuid");
 const config_1 = require("../../config");
+const utils_1 = require("../utils");
 exports.signin = (ctx) => __awaiter(this, void 0, void 0, function* () {
     let u = {
         account: ctx.request.body.account,
@@ -33,7 +34,13 @@ exports.signin = (ctx) => __awaiter(this, void 0, void 0, function* () {
     if (user.password_hash != password_hash) {
         ctx.throw("password_error", 400);
     }
-    ctx.body = user;
+    const token = utils_1.createToken({
+        id: user.id
+    });
+    ctx.body = {
+        user,
+        token
+    };
 });
 exports.signup = (ctx) => __awaiter(this, void 0, void 0, function* () {
     let u = {
@@ -62,8 +69,7 @@ exports.signup = (ctx) => __awaiter(this, void 0, void 0, function* () {
     }
     let salt = crypto.randomBytes(8).toString("hex");
     let password_hash = (yield Bluebird.promisify(crypto.pbkdf2)(u.password, salt, 64000, 32, 'sha256')).toString('hex');
-    let newUser = new model_1.User();
-    Object.assign(newUser, {
+    let newUser = new model_1.User({
         name: u.name,
         username: u.username,
         email: u.email,
@@ -80,21 +86,26 @@ exports.signup = (ctx) => __awaiter(this, void 0, void 0, function* () {
     });
     const user = yield typeorm_1.getEntityManager().persist(newUser);
     const key = uuid.v1();
-    let token = new model_1.Token();
-    Object.assign(token, {
+    let _token = new model_1.Token({
         key: key,
         user_id: user.id,
         data: user.email,
         type: 'activate'
     });
-    yield typeorm_1.getEntityManager().persist(token);
+    yield typeorm_1.getEntityManager().persist(_token);
     yield mail_1.default.sendMail({
         from: config_1.default.Mail.SMTP_USERNAME,
         to: user.email,
         subject: "感谢乃注册MoeCube账号",
         text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate.html?${key}`
     });
-    ctx.body = user;
+    const token = utils_1.createToken({
+        id: user.id
+    });
+    ctx.body = {
+        user,
+        token
+    };
 });
 exports.forgot = (ctx) => __awaiter(this, void 0, void 0, function* () {
     let u = {
@@ -113,8 +124,7 @@ exports.forgot = (ctx) => __awaiter(this, void 0, void 0, function* () {
         ctx.throw("user not exists", 400);
     }
     const key = uuid.v1();
-    let token = new model_1.Token();
-    Object.assign(token, {
+    let token = new model_1.Token({
         key: key,
         user_id: user.id,
         data: user.email,
@@ -138,20 +148,12 @@ exports.resetPassword = (ctx) => __awaiter(this, void 0, void 0, function* () {
         ctx.throw(400);
     }
     const tokenReq = typeorm_1.getEntityManager().getRepository(model_1.Token);
-    let token = yield tokenReq
-        .createQueryBuilder("token")
-        .where("token.key = :key AND token.user_id = :user_id")
-        .setParameters({ key: u.key, user_id: u.user_id })
-        .getOne();
+    let token = yield tokenReq.findOne({ key: u.key, user_id: u.user_id });
     if (!token) {
         ctx.throw("key exceed the time limit", 400);
     }
     const userRep = typeorm_1.getEntityManager().getRepository(model_1.User);
-    let user = yield userRep
-        .createQueryBuilder("user")
-        .where("user.id = :user_id")
-        .setParameters({ user_id: u.user_id })
-        .getOne();
+    let user = yield userRep.findOneById(u.user_id);
     if (!user) {
         ctx.throw("user not exists", 400);
     }
@@ -159,12 +161,33 @@ exports.resetPassword = (ctx) => __awaiter(this, void 0, void 0, function* () {
     let password_hash = (yield Bluebird.promisify(crypto.pbkdf2)(u.password, salt, 64000, 32, 'sha256')).toString('hex');
     user.password_hash = password_hash;
     ctx.body = yield typeorm_1.getEntityManager().persist(user);
+    yield tokenReq.remove(token);
 });
 exports.activate = (ctx) => __awaiter(this, void 0, void 0, function* () {
     let u = {
         key: ctx.request.body.key
     };
     if (!u.key) {
+        ctx.throw(400);
     }
+    const tokenReq = typeorm_1.getEntityManager().getRepository(model_1.Token);
+    const userReq = typeorm_1.getEntityManager().getRepository(model_1.User);
+    let token = yield tokenReq.findOne({ key: u.key });
+    if (!token) {
+        ctx.throw(400);
+    }
+    let user = yield userReq.findOne({ id: token.user_id });
+    user.active = true;
+    user.email = token.data;
+    ctx.body = yield userReq.persist(user);
+    let tokens = yield tokenReq.find({ user_id: user.id, type: 'activate' });
+    yield tokenReq.remove(tokens);
+});
+exports.authUser = (ctx) => __awaiter(this, void 0, void 0, function* () {
+    const { user } = ctx.state;
+    const userReq = typeorm_1.getEntityManager().getRepository(model_1.User);
+    let u = yield userReq.findOne({ id: user.id });
+    u.handleAvatar();
+    ctx.body = u;
 });
 //# sourceMappingURL=auth.js.map

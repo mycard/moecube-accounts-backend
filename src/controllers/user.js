@@ -38,6 +38,7 @@ exports.checkUserExists = (ctx) => __awaiter(this, void 0, void 0, function* () 
 });
 exports.UpdateProfiles = (ctx) => __awaiter(this, void 0, void 0, function* () {
     const u = {
+        avatar: ctx.request.body.avatar,
         name: ctx.request.body.name,
         user_id: ctx.request.body.user_id
     };
@@ -54,7 +55,9 @@ exports.UpdateProfiles = (ctx) => __awaiter(this, void 0, void 0, function* () {
         ctx.throw("user not exists", 400);
     }
     Object.assign(user, u);
-    ctx.body = yield typeorm_1.getEntityManager().persist(user);
+    yield typeorm_1.getEntityManager().persist(user);
+    user.handleAvatar();
+    ctx.body = user;
 });
 exports.UpdateAccount = (ctx) => __awaiter(this, void 0, void 0, function* () {
     const u = {
@@ -68,6 +71,7 @@ exports.UpdateAccount = (ctx) => __awaiter(this, void 0, void 0, function* () {
         ctx.throw(400);
     }
     const userRep = typeorm_1.getEntityManager().getRepository(model_1.User);
+    const tokenRep = typeorm_1.getEntityManager().getRepository(model_1.Token);
     let user = yield userRep
         .createQueryBuilder("user")
         .where("user.id = :user_id")
@@ -107,11 +111,29 @@ exports.UpdateAccount = (ctx) => __awaiter(this, void 0, void 0, function* () {
         // 未激活
         if (!user.active) {
             const key = uuid.v1();
-            let token = new model_1.Token();
-            Object.assign(token, {
+            let token = new model_1.Token({
                 key: key,
                 user_id: user.id,
-                data: user.email,
+                data: u.email,
+                type: 'activate',
+            });
+            yield typeorm_1.getEntityManager().persist(token);
+            yield mail_1.default.sendMail({
+                from: config_1.default.Mail.SMTP_USERNAME,
+                to: u.email,
+                subject: "验证邮箱",
+                text: `单击链接 或将链接复制到网页地址栏并回车 来验证邮箱 https://accounts.moecube.com/activate?${key}`
+            });
+            user.email = u.email;
+            yield userRep.persist(user);
+        }
+        else if (u.email != user.email) {
+            // 已激活
+            const key = uuid.v1();
+            let token = new model_1.Token({
+                key: key,
+                user_id: user.id,
+                data: u.email,
                 type: 'activate'
             });
             yield typeorm_1.getEntityManager().persist(token);
@@ -119,30 +141,10 @@ exports.UpdateAccount = (ctx) => __awaiter(this, void 0, void 0, function* () {
                 from: config_1.default.Mail.SMTP_USERNAME,
                 to: user.email,
                 subject: "修改邮箱",
-                text: `单击链接 或将链接复制到网页地址栏并回车 来修改邮箱 https://accounts.moecube.com/activate.html?${key}`
-            });
-            user.email = u.email;
-            yield typeorm_1.getEntityManager().persist(user);
-        }
-        else if (u.email != user.email) {
-            // 已激活
-            const key = uuid.v1();
-            let token = new model_1.Token();
-            Object.assign(token, {
-                key: key,
-                user_id: user.id,
-                data: user.email,
-                type: 'changeEmail'
-            });
-            yield typeorm_1.getEntityManager().persist(token);
-            yield mail_1.default.sendMail({
-                from: config_1.default.Mail.SMTP_USERNAME,
-                to: user.email,
-                subject: "修改邮箱",
-                text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate.html?${key}`
+                text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate?${key}`
             });
         }
     }
-    ctx.body = yield typeorm_1.getEntityManager().persist(user);
+    ctx.body = yield userRep.persist(user);
 });
 //# sourceMappingURL=user.js.map

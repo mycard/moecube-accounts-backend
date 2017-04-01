@@ -11,6 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Router = require("koa-router");
 const auth = require("./controllers/auth");
 const user = require("./controllers/user");
+const upload = require("./controllers/upload");
 const router = new Router();
 router.get("/", (ctx, next) => __awaiter(this, void 0, void 0, function* () {
     ctx.body = "Hello World";
@@ -18,9 +19,9 @@ router.get("/", (ctx, next) => __awaiter(this, void 0, void 0, function* () {
 router.post("/signin", auth.signin);
 router.post("/signup", auth.signup);
 router.post("/forgot", auth.forgot);
-router.patch("/reset", auth.resetPassword);
+router.post("/activate", auth.activate);
 router.post("/user/exists", user.checkUserExists);
-router.patch("/user/profiles", user.UpdateProfiles);
-router.patch("/user/account", user.UpdateAccount);
+router.post("/upload/image", upload.UploadImage);
+router.patch("/reset", auth.resetPassword);
 exports.default = router;
 //# sourceMappingURL=routes.js.map
