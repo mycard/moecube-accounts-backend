@@ -18,14 +18,14 @@ export const signin = async(ctx: Context) => {
 
     const userRep = getEntityManager().getRepository(User);
 
-    let user: User = await userRep
+    let user: User|undefined = await userRep
         .createQueryBuilder("user")
         .where("user.username= :account OR user.email= :account")
         .setParameters({account: u.account})
         .getOne();
 
     if (!user) {
-        ctx.throw("i_user_unexists", 400)
+        return ctx.throw("i_user_unexists", 400)
     }
 
     let password_hash = (await Bluebird.promisify(crypto.pbkdf2)(u.password, user.salt, 64000, 32, 'sha256')).toString('hex');
@@ -38,7 +38,7 @@ export const signin = async(ctx: Context) => {
         id: user.id
     })
 
-    user.handleAvatar()
+    user.handleAvatar!()
 
     ctx.body = {
         user,
@@ -65,7 +65,7 @@ export const signup = async(ctx: Context) => {
     const userRep = getEntityManager().getRepository(User);
 
     // check user exists
-    let exists: User = await userRep
+    let exists: User|undefined = await userRep
         .createQueryBuilder("user")
         .where("user.username= :username OR user.email= :email")
         .setParameters({username: u.username, email: u.email})
@@ -77,6 +77,7 @@ export const signup = async(ctx: Context) => {
         } else if (exists.username == u.username) {
             ctx.throw("i_username_exists", 400)
         }
+        return
     }
 
     let salt = crypto.randomBytes(8).toString("hex");
@@ -99,13 +100,15 @@ export const signup = async(ctx: Context) => {
         updated_at: new Date()
     });
 
+    newUser.handleAvatar!();
+
 
     const user = await getEntityManager().persist(newUser);
 
     const key = uuid.v1();
     let _token: Token = new Token({
         key: key,
-        user_id: user.id,
+        user_id: user.id!,
         data: user.email,
         type: 'activate'
     });
@@ -139,20 +142,20 @@ export const forgot = async(ctx: Context) => {
 
     const userRep = getEntityManager().getRepository(User);
 
-    let user: User = await userRep
+    let user: User|undefined = await userRep
         .createQueryBuilder("user")
         .where("user.username= :account OR user.email= :account")
         .setParameters({account: u.account})
         .getOne();
 
     if (!user) {
-        ctx.throw("i_user_unexists", 400)
+        return ctx.throw("i_user_unexists", 400)
     }
 
     const key = uuid.v1();
     let token: Token = new Token({
         key: key,
-        user_id: user.id,
+        user_id: user.id!,
         data: user.email,
         type: 'activate'
     });
@@ -180,7 +183,7 @@ export const resetPassword = async(ctx: Context) => {
     }
 
     const tokenReq = getEntityManager().getRepository(Token);
-    let token: Token = await tokenReq.findOne({key: u.key, user_id: u.user_id});
+    let token: Token = (await tokenReq.findOne({key: u.key, user_id: u.user_id}))!;
 
 
     if (!token) {
@@ -188,10 +191,11 @@ export const resetPassword = async(ctx: Context) => {
     }
 
     const userRep = getEntityManager().getRepository(User);
-    let user: User = await userRep.findOneById(u.user_id);
+    let user: User|undefined = await userRep.findOneById(u.user_id);
 
     if (!user) {
         ctx.throw("i_user_unexists", 400)
+        return
     }
 
     let salt = crypto.randomBytes(8).toString("hex");
@@ -219,13 +223,14 @@ export const activate = async(ctx: Context) => {
     const tokenReq = getEntityManager().getRepository(Token);
     const userReq = getEntityManager().getRepository(User);
 
-    let token :Token =  await tokenReq.findOne({ key: u.key});
+    let token :Token|undefined =  await tokenReq.findOne({ key: u.key});
 
     if(!token) {
         ctx.throw("i_key_invalid", 400)
+        return
     }
 
-    let user :User= await userReq.findOne({ id: token.user_id })
+    let user :User = (await userReq.findOne({ id: token.user_id }))!
     user.active = true;
     user.email = token.data;
 
@@ -242,8 +247,8 @@ export const authUser = async(ctx: Context) => {
     const {user} = ctx.state
     const userReq = getEntityManager().getRepository(User);
 
-    let u :User = await userReq.findOne({id: user.id})
-    u.handleAvatar()
+    let u :User = (await userReq.findOne({id: user.id}))!
+    u.handleAvatar!()
 
     ctx.body = u
 }

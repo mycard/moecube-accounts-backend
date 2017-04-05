@@ -20,7 +20,7 @@ export const checkUserExists= async (ctx: Context) => {
 
     const userRep = getEntityManager().getRepository(User);
 
-    let user :User = await userRep
+    let user :User|undefined = await userRep
         .createQueryBuilder("user")
         .where("user.username= :username AND user.id != :user_id")
         .orWhere("user.email= :email AND user.id != :user_id")
@@ -48,14 +48,14 @@ export const UpdateProfiles = async(ctx: Context) => {
 
     const userRep = getEntityManager().getRepository(User);
 
-    let user: User = await userRep
+    let user: User|undefined = await userRep
         .createQueryBuilder("user")
         .where("user.id = :user_id")
         .setParameters({user_id: u.user_id})
         .getOne();
 
     if (!user) {
-        ctx.throw("i_user_unexists", 400)
+        return ctx.throw("i_user_unexists", 400)
     }
 
 
@@ -63,7 +63,7 @@ export const UpdateProfiles = async(ctx: Context) => {
 
     await getEntityManager().persist(user)
 
-    user.handleAvatar()
+    user.handleAvatar!()
 
     ctx.body = user
 
@@ -86,14 +86,14 @@ export const UpdateAccount = async (ctx: Context) => {
     const userRep = getEntityManager().getRepository(User);
     const tokenRep = getEntityManager().getRepository(Token);
 
-    let user: User = await userRep
+    let user: User|undefined = await userRep
         .createQueryBuilder("user")
         .where("user.id = :user_id")
         .setParameters({user_id: u.user_id})
         .getOne();
 
     if (!user) {
-        ctx.throw("i_user_unexists", 400)
+        return ctx.throw("i_user_unexists", 400)
     }
 
     // check password
@@ -110,7 +110,7 @@ export const UpdateAccount = async (ctx: Context) => {
 
     if(u.username) {
 
-        let exists: User = await userRep
+        let exists: User|undefined = await userRep
             .createQueryBuilder("user")
             .where("user.username= :username AND user.id != :user_id")
             .setParameters({username: u.username, user_id: u.user_id})
@@ -125,7 +125,7 @@ export const UpdateAccount = async (ctx: Context) => {
 
     if(u.email) {
 
-        let exists: User = await userRep
+        let exists: User|undefined = await userRep
             .createQueryBuilder("user")
             .where("user.email= :email AND user.id != :user_id")
             .setParameters({email: u.email, user_id: u.user_id})
@@ -141,7 +141,7 @@ export const UpdateAccount = async (ctx: Context) => {
             const key = uuid.v1();
             let token :Token = new Token({
                 key: key,
-                user_id: user.id,
+                user_id: user.id!,
                 data: u.email,
                 type: 'activate',
             });
@@ -162,7 +162,7 @@ export const UpdateAccount = async (ctx: Context) => {
             const key = uuid.v1();
             let token :Token = new Token({
                 key: key,
-                user_id: user.id,
+                user_id: user.id!,
                 data: u.email,
                 type: 'activate'
             });

@@ -2,7 +2,6 @@ import * as Koa from 'koa';
 import * as bodyParser from 'koa-bodyparser';
 import * as log4js from 'log4js';
 import * as jwt from 'koa-jwt'
-import * as convert from 'koa-convert'
 import router from './src/routes';
 import privateRouter from './src/privateRoutes'
 import { createConnection } from 'typeorm'

@@ -5,7 +5,8 @@
     "target": "es6",
     "lib": ["es2017"],
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "strictNullChecks": true
   },
   "exclude": [
     "node_modules"
