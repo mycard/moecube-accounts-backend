@@ -30,9 +30,8 @@ export const checkUserExists= async (ctx: Context) => {
     if(user) {
         ctx.body = user
     } else {
-        ctx.throw("not found", 400)
+        ctx.throw("i_not_found", 400)
     }
-
 }
 
 export const UpdateProfiles = async(ctx: Context) => {
@@ -56,7 +55,7 @@ export const UpdateProfiles = async(ctx: Context) => {
         .getOne();
 
     if (!user) {
-        ctx.throw("user not exists", 400)
+        ctx.throw("i_user_unexists", 400)
     }
 
 
@@ -94,13 +93,13 @@ export const UpdateAccount = async (ctx: Context) => {
         .getOne();
 
     if (!user) {
-        ctx.throw("user not exists", 400)
+        ctx.throw("i_user_unexists", 400)
     }
 
     // check password
     let password_hash = (await Bluebird.promisify(crypto.pbkdf2)(u.password, user.salt, 64000, 32, 'sha256')).toString('hex');
     if(user.password_hash != password_hash) {
-        ctx.throw("password is not correct", 400)
+        ctx.throw("i_password_error", 400)
     }
 
 
@@ -118,7 +117,7 @@ export const UpdateAccount = async (ctx: Context) => {
             .getOne()
 
         if (exists) {
-            ctx.throw('username exists', 400)
+            ctx.throw('i_username_exists', 400)
         }
 
         user.username = u.username
@@ -133,7 +132,7 @@ export const UpdateAccount = async (ctx: Context) => {
             .getOne()
 
         if (exists) {
-            ctx.throw('email exists', 400)
+            ctx.throw('i_email_exists', 400)
         }
 
         // 未激活
@@ -152,7 +151,7 @@ export const UpdateAccount = async (ctx: Context) => {
                 from: config.Mail.SMTP_USERNAME,
                 to: u.email,
                 subject: "验证邮箱",
-                text: `单击链接 或将链接复制到网页地址栏并回车 来验证邮箱 https://accounts.moecube.com/activate?${key}`
+                text: `单击链接 或将链接复制到网页地址栏并回车 来验证邮箱 https://accounts.moecube.com/activate?key=${key}`
             });
 
             user.email = u.email
@@ -173,7 +172,7 @@ export const UpdateAccount = async (ctx: Context) => {
                 from: config.Mail.SMTP_USERNAME,
                 to: user.email,
                 subject: "修改邮箱",
-                text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate?${key}`
+                text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate?key=${key}`
             });
         }
     }

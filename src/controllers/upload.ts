@@ -46,7 +46,6 @@ export const UploadImage = async (ctx: Context) => {
     } catch (err) {
         ctx.throw(403, err)
     }
-
 }
 
 

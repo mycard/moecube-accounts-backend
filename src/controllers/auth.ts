@@ -25,13 +25,13 @@ export const signin = async(ctx: Context) => {
         .getOne();
 
     if (!user) {
-        ctx.throw("user_unexists", 400)
+        ctx.throw("i_user_unexists", 400)
     }
 
     let password_hash = (await Bluebird.promisify(crypto.pbkdf2)(u.password, user.salt, 64000, 32, 'sha256')).toString('hex');
 
     if (user.password_hash != password_hash) {
-        ctx.throw("password_error", 400)
+        ctx.throw("i_password_error", 400)
     }
 
     const token = createToken({
@@ -71,9 +71,9 @@ export const signup = async(ctx: Context) => {
 
     if (exists) {
         if (exists.email == u.email) {
-            ctx.throw("email_exists", 400)
+            ctx.throw("i_email_exists", 400)
         } else if (exists.username == u.username) {
-            ctx.throw("username_exists", 400)
+            ctx.throw("i_username_exists", 400)
         }
     }
 
@@ -113,7 +113,7 @@ export const signup = async(ctx: Context) => {
         from: config.Mail.SMTP_USERNAME,
         to: user.email,
         subject: "感谢乃注册MoeCube账号",
-        text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate.html?${key}`
+        text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate?key=${key}`
     });
 
     const token = createToken({
@@ -144,7 +144,7 @@ export const forgot = async(ctx: Context) => {
         .getOne();
 
     if (!user) {
-        ctx.throw("user not exists", 400)
+        ctx.throw("i_user_unexists", 400)
     }
 
     const key = uuid.v1();
@@ -162,7 +162,7 @@ export const forgot = async(ctx: Context) => {
         from: config.Mail.SMTP_USERNAME,
         to: user.email,
         subject: "修改密码",
-        text: `单击链接 或将链接复制到网页地址栏并回车 来修改密码 http://accounts.moecube.com/reset_password.html?key=${key}&user_id=${user.id}`
+        text: `单击链接 或将链接复制到网页地址栏并回车 来修改密码 http://accounts.moecube.com/reset?key=${key}&user_id=${user.id}`
     })
 };
 
@@ -182,14 +182,14 @@ export const resetPassword = async(ctx: Context) => {
 
 
     if (!token) {
-        ctx.throw("key exceed the time limit", 400)
+        ctx.throw("i_key_time_out", 400)
     }
 
     const userRep = getEntityManager().getRepository(User);
     let user: User = await userRep.findOneById(u.user_id);
 
     if (!user) {
-        ctx.throw("user not exists", 400)
+        ctx.throw("i_user_unexists", 400)
     }
 
     let salt = crypto.randomBytes(8).toString("hex");
@@ -220,7 +220,7 @@ export const activate = async(ctx: Context) => {
     let token :Token =  await tokenReq.findOne({ key: u.key});
 
     if(!token) {
-        ctx.throw(400)
+        ctx.throw("i_key_invalid", 400)
     }
 
     let user :User= await userReq.findOne({ id: token.user_id })

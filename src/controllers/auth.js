@@ -28,11 +28,11 @@ exports.signin = (ctx) => __awaiter(this, void 0, void 0, function* () {
         .setParameters({ account: u.account })
         .getOne();
     if (!user) {
-        ctx.throw("user_unexists", 400);
+        ctx.throw("i_user_unexists", 400);
     }
     let password_hash = (yield Bluebird.promisify(crypto.pbkdf2)(u.password, user.salt, 64000, 32, 'sha256')).toString('hex');
     if (user.password_hash != password_hash) {
-        ctx.throw("password_error", 400);
+        ctx.throw("i_password_error", 400);
     }
     const token = utils_1.createToken({
         id: user.id
@@ -61,10 +61,10 @@ exports.signup = (ctx) => __awaiter(this, void 0, void 0, function* () {
         .getOne();
     if (exists) {
         if (exists.email == u.email) {
-            ctx.throw("email_exists", 400);
+            ctx.throw("i_email_exists", 400);
         }
         else if (exists.username == u.username) {
-            ctx.throw("username_exists", 400);
+            ctx.throw("i_username_exists", 400);
         }
     }
     let salt = crypto.randomBytes(8).toString("hex");
@@ -97,7 +97,7 @@ exports.signup = (ctx) => __awaiter(this, void 0, void 0, function* () {
         from: config_1.default.Mail.SMTP_USERNAME,
         to: user.email,
         subject: "感谢乃注册MoeCube账号",
-        text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate.html?${key}`
+        text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate?key=${key}`
     });
     const token = utils_1.createToken({
         id: user.id
@@ -121,7 +121,7 @@ exports.forgot = (ctx) => __awaiter(this, void 0, void 0, function* () {
         .setParameters({ account: u.account })
         .getOne();
     if (!user) {
-        ctx.throw("user not exists", 400);
+        ctx.throw("i_user_unexists", 400);
     }
     const key = uuid.v1();
     let token = new model_1.Token({
@@ -135,7 +135,7 @@ exports.forgot = (ctx) => __awaiter(this, void 0, void 0, function* () {
         from: config_1.default.Mail.SMTP_USERNAME,
         to: user.email,
         subject: "修改密码",
-        text: `单击链接 或将链接复制到网页地址栏并回车 来修改密码 http://accounts.moecube.com/reset_password.html?key=${key}&user_id=${user.id}`
+        text: `单击链接 或将链接复制到网页地址栏并回车 来修改密码 http://accounts.moecube.com/reset?key=${key}&user_id=${user.id}`
     });
 });
 exports.resetPassword = (ctx) => __awaiter(this, void 0, void 0, function* () {
@@ -150,12 +150,12 @@ exports.resetPassword = (ctx) => __awaiter(this, void 0, void 0, function* () {
     const tokenReq = typeorm_1.getEntityManager().getRepository(model_1.Token);
     let token = yield tokenReq.findOne({ key: u.key, user_id: u.user_id });
     if (!token) {
-        ctx.throw("key exceed the time limit", 400);
+        ctx.throw("i_key_time_out", 400);
     }
     const userRep = typeorm_1.getEntityManager().getRepository(model_1.User);
     let user = yield userRep.findOneById(u.user_id);
     if (!user) {
-        ctx.throw("user not exists", 400);
+        ctx.throw("i_user_unexists", 400);
     }
     let salt = crypto.randomBytes(8).toString("hex");
     let password_hash = (yield Bluebird.promisify(crypto.pbkdf2)(u.password, salt, 64000, 32, 'sha256')).toString('hex');
@@ -174,7 +174,7 @@ exports.activate = (ctx) => __awaiter(this, void 0, void 0, function* () {
     const userReq = typeorm_1.getEntityManager().getRepository(model_1.User);
     let token = yield tokenReq.findOne({ key: u.key });
     if (!token) {
-        ctx.throw(400);
+        ctx.throw("i_key_invalid", 400);
     }
     let user = yield userReq.findOne({ id: token.user_id });
     user.active = true;
