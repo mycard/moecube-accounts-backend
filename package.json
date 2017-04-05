@@ -1,6 +1,7 @@
 {
   "scripts": {
     "start": "node server.js",
+    "dev":"export NODE_ENV=development; node server.js",
     "tsc": "tsc"
   },
   "dependencies": {
