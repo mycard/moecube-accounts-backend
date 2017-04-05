@@ -1,5 +1,4 @@
 node_modules
-config.*
 conf-dev.*
 *.log*
 *.js
