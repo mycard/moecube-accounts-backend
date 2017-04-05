@@ -38,6 +38,8 @@ export const signin = async(ctx: Context) => {
         id: user.id
     })
 
+    user.handleAvatar()
+
     ctx.body = {
         user,
         token

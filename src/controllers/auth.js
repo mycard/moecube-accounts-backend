@@ -37,6 +37,7 @@ exports.signin = (ctx) => __awaiter(this, void 0, void 0, function* () {
     const token = utils_1.createToken({
         id: user.id
     });
+    user.handleAvatar();
     ctx.body = {
         user,
         token
