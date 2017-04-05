@@ -1,5 +1,6 @@
 node_modules
 config.*
+conf-dev.*
 *.log*
 *.js
 *.js.map
