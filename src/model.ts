@@ -46,7 +46,7 @@ export class User {
                 this.avatar = path.join('https://r.my-card.in', this.avatar);
             }
         } else {
-            this.avatar = 'https://r.my-card.in/accounts/images/default_avatar.jpg';
+            this.avatar = 'https://r.my-card.in/accounts/default_avatar.jpg';
         }
     };
 }

@@ -167,7 +167,7 @@ export const forgot = async (ctx: Context) => {
         from: config.Mail.SMTP_USERNAME,
         to: user.email,
         subject: '修改密码',
-        text: `单击链接 或将链接复制到网页地址栏并回车 来修改密码 http://accounts.moecube.com/reset?key=${key}&user_id=${user.id}`
+        text: `单击链接 或将链接复制到网页地址栏并回车 来修改密码 https://accounts.moecube.com/reset?key=${key}&user_id=${user.id}`
     });
 };
 
