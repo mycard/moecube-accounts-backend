@@ -36,36 +36,34 @@ export const checkUserExists = async (ctx: Context) => {
 
 export const UpdateProfiles = async (ctx: Context) => {
 
-    const u = {
-        avatar: ctx.request.body.avatar,
-        name: ctx.request.body.name,
-        user_id: ctx.request.body.user_id
-    };
+    const { user } = ctx.state;
 
-    if (!u.user_id) {
+    if (!user.id) {
         ctx.throw(400);
     }
 
     const userRep = getEntityManager().getRepository(User);
 
-    let user: User | undefined = await userRep
+    let _user: User | undefined = await userRep
         .createQueryBuilder('user')
         .where('user.id = :user_id')
-        .setParameters({ user_id: u.user_id })
+        .setParameters({ user_id: user.id })
         .getOne();
 
-    if (!user) {
+    if (!_user) {
         return ctx.throw('i_user_unexists', 400);
     }
 
 
-    Object.assign(user, u);
+    Object.assign(_user, ctx.request.body);
 
-    await getEntityManager().persist(user);
 
-    user.handleAvatar!();
+    await getEntityManager().persist(_user);
 
-    ctx.body = user;
+
+    _user.handleAvatar!();
+
+    ctx.body = _user;
 
 };
 
@@ -176,6 +174,8 @@ export const UpdateAccount = async (ctx: Context) => {
             });
         }
     }
+
+    user.handleAvatar!();
 
     ctx.body = await userRep.persist(user);
 

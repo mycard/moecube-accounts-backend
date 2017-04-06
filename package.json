@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "node server.js",
-    "dev": "ENVIRONMENT=development npm start",
+    "dev": "NODE_ENV=development nodemon",
     "tsc": "tsc",
     "prestart": "tsc"
   },
@@ -26,6 +26,7 @@
   "devDependencies": {
     "@types/bluebird": "^3.5.2",
     "@types/busboy": "^0.2.3",
+    "@types/joi": "^10.0.1",
     "@types/koa": "^2.0.39",
     "@types/koa-bodyparser": "^3.0.23",
     "@types/koa-jwt": "^2.1.2",
