@@ -204,6 +204,7 @@ export const resetPassword = async (ctx: Context) => {
 
 
     user.password_hash = password_hash;
+    user.salt = salt;
 
     ctx.body = await getEntityManager().persist(user);
 
