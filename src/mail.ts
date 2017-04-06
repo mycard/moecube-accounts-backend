@@ -1,5 +1,5 @@
-import * as nodemailer from 'nodemailer'
-import config from '../config'
+import * as nodemailer from 'nodemailer';
+import config from '../config';
 
 let tp = nodemailer.createTransport({
     host: config.Mail.SMTP_HOST,
@@ -9,7 +9,7 @@ let tp = nodemailer.createTransport({
         pass: config.Mail.SMTP_PASSWORD
     },
     secure: config.Mail.SMTP_SECURE
-})
+});
 
 
-export default tp
+export default tp;
