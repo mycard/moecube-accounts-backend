@@ -23,7 +23,7 @@ export const UploadImage = async (ctx: Context) => {
                 throw new Error('Unsupported image type');
             }
 
-            const filename = `avatar/${uuid.v1()}`;
+            const filename = `avatars/${uuid.v1()}`;
 
             const upload = ossStream.upload({
                 Bucket: config.OSS.OSS_BUCKET,
