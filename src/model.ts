@@ -1,12 +1,12 @@
-import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { ColumnTypes } from 'typeorm/metadata/types/ColumnTypes';
-import * as path from 'path';
+import { URL } from 'url';
 
 @Entity('users')
 export class User {
 
     @PrimaryGeneratedColumn(ColumnTypes.INTEGER)
-    id?: number;
+    id: number;
     @Column(ColumnTypes.STRING, { unique: true, nullable: false })
     username: string;
     @Column(ColumnTypes.STRING, { nullable: true })
@@ -29,28 +29,47 @@ export class User {
     registration_ip_address: string;
     @Column(ColumnTypes.STRING, { nullable: false })
     ip_address: string;
-    @Column(ColumnTypes.DATETIME, { nullable: false })
+    @CreateDateColumn({ nullable: false })
     created_at: Date;
-    @Column(ColumnTypes.DATETIME, { nullable: false })
+    @UpdateDateColumn({ nullable: false })
     updated_at: Date;
 
-    constructor(props: User) {
+    constructor(props: UserCreate) {
         Object.assign(this, props);
     }
 
-    handleAvatar? = () => {
+    toJSON() {
+        // 这儿是 TypeScript 缺个功能，this 不支持直接用 ... 展开，这里强制类型转换一下。
+        // https://github.com/Microsoft/TypeScript/issues/10727
+        return { ...<Object>this, avatar: this.avatarURL() };
+    }
+
+    avatarURL() {
         if (this.avatar) {
+            let url: URL;
             if (this.avatar.substring(0, 16) == '/uploads/default') {
-                this.avatar = `https://ygobbs.com${this.avatar}`;
+                url = new URL(this.avatar, 'https://ygobbs.com');
             } else {
-                this.avatar = path.join('https://r.my-card.in', this.avatar);
+                url = new URL(this.avatar, 'https://cdn01.moecube.com');
             }
+            return url.toString();
         } else {
-            this.avatar = 'https://r.my-card.in/accounts/default_avatar.jpg';
+            return 'https://cdn01.moecube.com/accounts/default_avatar.jpg';
         }
-    };
+    }
 }
 
+interface UserCreate {
+    username: string;
+    email: string;
+    password_hash: string;
+    salt: string;
+    active: boolean;
+    admin: boolean;
+    locale: string;
+    registration_ip_address: string;
+    ip_address: string;
+}
 
 @Entity('tokens')
 export class Token {

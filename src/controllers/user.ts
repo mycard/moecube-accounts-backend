@@ -5,7 +5,7 @@ import * as Bluebird from 'bluebird';
 import { getEntityManager } from 'typeorm';
 import tp from '../mail';
 import config from '../../config';
-import uuid = require('uuid');
+import * as uuid from 'uuid';
 
 
 export const checkUserExists = async (ctx: Context) => {
@@ -22,8 +22,8 @@ export const checkUserExists = async (ctx: Context) => {
 
     let user: User | undefined = await userRep
         .createQueryBuilder('user')
-        .where('user.username= :username AND user.id != :user_id')
-        .orWhere('user.email= :email AND user.id != :user_id')
+        .where('lower(user.username) = lower(:username) AND user.id != :user_id')
+        .orWhere('lower(user.email) = lower(:email) AND user.id != :user_id')
         .setParameters({ username: u.username, email: u.email, user_id: u.user_id })
         .getOne();
 
@@ -62,8 +62,6 @@ export const UpdateProfiles = async (ctx: Context) => {
     Object.assign(user, u);
 
     await getEntityManager().persist(user);
-
-    user.handleAvatar!();
 
     ctx.body = user;
 
@@ -110,11 +108,11 @@ export const UpdateAccount = async (ctx: Context) => {
 
     if (u.username) {
 
-        let exists: User | undefined = await userRep
+        let exists: number = await userRep
             .createQueryBuilder('user')
-            .where('user.username= :username AND user.id != :user_id')
+            .where('lower(user.username) = lower(:username) AND user.id != :user_id')
             .setParameters({ username: u.username, user_id: u.user_id })
-            .getOne();
+            .getCount();
 
         if (exists) {
             ctx.throw('i_username_exists', 400);
@@ -125,11 +123,11 @@ export const UpdateAccount = async (ctx: Context) => {
 
     if (u.email) {
 
-        let exists: User | undefined = await userRep
+        let exists: number = await userRep
             .createQueryBuilder('user')
-            .where('user.email= :email AND user.id != :user_id')
+            .where('lower(user.email) = lower(:email) AND user.id != :user_id')
             .setParameters({ email: u.email, user_id: u.user_id })
-            .getOne();
+            .getCount();
 
         if (exists) {
             ctx.throw('i_email_exists', 400);

@@ -20,7 +20,7 @@ export const signin = async (ctx: Context) => {
 
     let user: User | undefined = await userRep
         .createQueryBuilder('user')
-        .where('user.username= :account OR user.email= :account')
+        .where('lower(user.username) = lower(:account) OR lower(user.email) = lower(:account)')
         .setParameters({ account: u.account })
         .getOne();
 
@@ -37,8 +37,6 @@ export const signin = async (ctx: Context) => {
     const token = createToken({
         id: user.id
     });
-
-    user.handleAvatar!();
 
     ctx.body = {
         user,
@@ -67,7 +65,7 @@ export const signup = async (ctx: Context) => {
     // check user exists
     let exists: User | undefined = await userRep
         .createQueryBuilder('user')
-        .where('user.username= :username OR user.email= :email')
+        .where('lower(user.username) = lower(:username) OR lower(user.email) = lower(:email)')
         .setParameters({ username: u.username, email: u.email })
         .getOne();
 
@@ -85,23 +83,16 @@ export const signup = async (ctx: Context) => {
     let password_hash = (await Bluebird.promisify(crypto.pbkdf2)(u.password, salt, 64000, 32, 'sha256')).toString('hex');
 
     let newUser = new User({
-        name: u.name,
         username: u.username,
         email: u.email,
         password_hash,
         salt,
         admin: false,
         active: false,
-        avatar: '',
         locale: 'zh-CN',
         registration_ip_address: ctx.request.ip,
-        ip_address: ctx.request.ip,
-        created_at: new Date(),
-        updated_at: new Date()
+        ip_address: ctx.request.ip
     });
-
-    newUser.handleAvatar!();
-
 
     const user = await getEntityManager().persist(newUser);
 
@@ -144,7 +135,7 @@ export const forgot = async (ctx: Context) => {
 
     let user: User | undefined = await userRep
         .createQueryBuilder('user')
-        .where('user.username= :account OR user.email= :account')
+        .where('lower(user.username) = lower(:account) OR lower(user.email) = lower(:account)')
         .setParameters({ account: u.account })
         .getOne();
 
@@ -200,10 +191,7 @@ export const resetPassword = async (ctx: Context) => {
 
     let salt = crypto.randomBytes(8).toString('hex');
 
-    let password_hash = (await Bluebird.promisify(crypto.pbkdf2)(u.password, salt, 64000, 32, 'sha256')).toString('hex');
-
-
-    user.password_hash = password_hash;
+    user.password_hash = (await Bluebird.promisify(crypto.pbkdf2)(u.password, salt, 64000, 32, 'sha256')).toString('hex');
     user.salt = salt;
 
     ctx.body = await getEntityManager().persist(user);
@@ -248,8 +236,5 @@ export const authUser = async (ctx: Context) => {
     const { user } = ctx.state;
     const userReq = getEntityManager().getRepository(User);
 
-    let u: User = (await userReq.findOne({ id: user.id }))!;
-    u.handleAvatar!();
-
-    ctx.body = u;
+    ctx.body = await userReq.findOne({ id: user.id });
 };
