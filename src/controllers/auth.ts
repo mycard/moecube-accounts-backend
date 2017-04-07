@@ -7,7 +7,8 @@ import tp from '../mail';
 import * as uuid from 'uuid';
 import config from '../../config';
 import { createToken } from '../utils';
-
+import views from '../../views';
+import { URL } from 'url';
 
 export const signin = async (ctx: Context) => {
 
@@ -105,11 +106,15 @@ export const signup = async (ctx: Context) => {
     });
 
     await getEntityManager().persist(_token);
+
+    const url = new URL('https://accounts.moecube.com/activate');
+    url.searchParams.set('key', key);
     await tp.sendMail({
         from: config.Mail.SMTP_USERNAME,
         to: user.email,
-        subject: '感谢乃注册MoeCube账号',
-        text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate?key=${key}`
+        subject: 'MoeCube 账号邮箱验证',
+        text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 ${url}`,
+        html: views.activate({ locale: 'zh-CN', username: user.username, url })
     });
 
     const token = createToken({
@@ -154,11 +159,15 @@ export const forgot = async (ctx: Context) => {
 
     await getEntityManager().persist(token);
 
+    const url = new URL('https://accounts.moecube.com/reset');
+    url.searchParams.set('key', key);
+    url.searchParams.set('user_id', user.id.toString());
     ctx.body = await tp.sendMail({
         from: config.Mail.SMTP_USERNAME,
         to: user.email,
-        subject: '修改密码',
-        text: `单击链接 或将链接复制到网页地址栏并回车 来修改密码 https://accounts.moecube.com/reset?key=${key}&user_id=${user.id}`
+        subject: '重置密码',
+        text: `单击链接 或将链接复制到网页地址栏并回车 来重置密码 ${url}`,
+        html: views.reset_password({ locale: 'zh-CN', username: user.username, url })
     });
 };
 

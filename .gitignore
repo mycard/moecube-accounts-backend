@@ -1,5 +1,5 @@
 node_modules
-conf-dev.*
+conf-dev.ts
 *.log*
 *.js
 *.js.map

@@ -6,6 +6,8 @@ import { getEntityManager } from 'typeorm';
 import tp from '../mail';
 import config from '../../config';
 import * as uuid from 'uuid';
+import views from '../../views';
+import { URL } from 'url';
 
 
 export const checkUserExists = async (ctx: Context) => {
@@ -130,45 +132,30 @@ export const UpdateAccount = async (ctx: Context) => {
             ctx.throw('i_email_exists', 400);
         }
 
-        // 未激活
+
+        const key = uuid.v1();
+        let token: Token = new Token({
+            key: key,
+            user_id: user.id!,
+            data: u.email,
+            type: 'activate',
+        });
+
+        await getEntityManager().persist(token);
+
+        const url = new URL('https://accounts.moecube.com/activate');
+        url.searchParams.set('key', key);
+        await tp.sendMail({
+            from: config.Mail.SMTP_USERNAME,
+            to: user.email,
+            subject: 'MoeCube 账号邮箱验证',
+            text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 ${url}`,
+            html: views.activate({ locale: 'zh-CN', username: user.username, url })
+        });
+
+        // 如果用户未激活，立即变更用户的邮件地址。对于已激活的等验证邮件后再改变
         if (!user.active) {
-
-            const key = uuid.v1();
-            let token: Token = new Token({
-                key: key,
-                user_id: user.id!,
-                data: u.email,
-                type: 'activate',
-            });
-
-            await getEntityManager().persist(token);
-            await tp.sendMail({
-                from: config.Mail.SMTP_USERNAME,
-                to: u.email,
-                subject: '验证邮箱',
-                text: `单击链接 或将链接复制到网页地址栏并回车 来验证邮箱 https://accounts.moecube.com/activate?key=${key}`
-            });
-
             user.email = u.email;
-            await userRep.persist(user);
-
-        } else if (u.email != user.email) {
-            // 已激活
-            const key = uuid.v1();
-            let token: Token = new Token({
-                key: key,
-                user_id: user.id!,
-                data: u.email,
-                type: 'activate'
-            });
-
-            await getEntityManager().persist(token);
-            await tp.sendMail({
-                from: config.Mail.SMTP_USERNAME,
-                to: user.email,
-                subject: '修改邮箱',
-                text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 https://accounts.moecube.com/activate?key=${key}`
-            });
         }
     }
 
