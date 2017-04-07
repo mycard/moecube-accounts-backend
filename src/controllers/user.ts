@@ -145,6 +145,7 @@ export const UpdateAccount = async (ctx: Context) => {
 
         const url = new URL('https://accounts.moecube.com/activate');
         url.searchParams.set('key', key);
+        url.searchParams.set('email', user.email);
         await tp.sendMail({
             from: config.Mail.SMTP_USERNAME,
             to: user.email,
