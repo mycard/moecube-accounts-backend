@@ -65,7 +65,11 @@ createConnection({
         url: config.DATABASE
     },
     entities: [User, Token],
-    autoSchemaSync: true
+    autoSchemaSync: true,
+    logging: {
+        logQueries: true,
+        logFailedQueryError: true,
+    }
 }).then(conncection => {
 
     app.listen(3000, () => {

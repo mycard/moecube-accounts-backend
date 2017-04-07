@@ -22,8 +22,8 @@ export const checkUserExists = async (ctx: Context) => {
 
     let user: User | undefined = await userRep
         .createQueryBuilder('user')
-        .where('lower(user.username) = lower(:username) AND user.id != :user_id')
-        .orWhere('lower(user.email) = lower(:email) AND user.id != :user_id')
+        .where('lower("user"."username") = lower(:username) AND user.id != :user_id')
+        .orWhere('lower("user"."email") = lower(:email) AND user.id != :user_id')
         .setParameters({ username: u.username, email: u.email, user_id: u.user_id })
         .getOne();
 
@@ -107,7 +107,7 @@ export const UpdateAccount = async (ctx: Context) => {
 
         let exists: number = await userRep
             .createQueryBuilder('user')
-            .where('lower(user.username) = lower(:username) AND user.id != :user_id')
+            .where('lower("user"."username") = lower(:username) AND user.id != :user_id')
             .setParameters({ username: u.username, user_id: u.user_id })
             .getCount();
 
@@ -122,7 +122,7 @@ export const UpdateAccount = async (ctx: Context) => {
 
         let exists: number = await userRep
             .createQueryBuilder('user')
-            .where('lower(user.email) = lower(:email) AND user.id != :user_id')
+            .where('lower("user"."email") = lower(:email) AND user.id != :user_id')
             .setParameters({ email: u.email, user_id: u.user_id })
             .getCount();
 

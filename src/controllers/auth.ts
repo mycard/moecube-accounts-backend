@@ -20,7 +20,7 @@ export const signin = async (ctx: Context) => {
 
     let user: User | undefined = await userRep
         .createQueryBuilder('user')
-        .where('lower(user.username) = lower(:account) OR lower(user.email) = lower(:account)')
+        .where('lower("user"."username") = lower(:account) OR lower("user"."email") = lower(:account)')
         .setParameters({ account: u.account })
         .getOne();
 
@@ -65,7 +65,7 @@ export const signup = async (ctx: Context) => {
     // check user exists
     let exists: User | undefined = await userRep
         .createQueryBuilder('user')
-        .where('lower(user.username) = lower(:username) OR lower(user.email) = lower(:email)')
+        .where('lower("user"."username") = lower(:username) OR lower("user"."email") = lower(:email)')
         .setParameters({ username: u.username, email: u.email })
         .getOne();
 
@@ -135,7 +135,7 @@ export const forgot = async (ctx: Context) => {
 
     let user: User | undefined = await userRep
         .createQueryBuilder('user')
-        .where('lower(user.username) = lower(:account) OR lower(user.email) = lower(:account)')
+        .where('lower("user"."username") = lower(:account) OR lower("user"."email") = lower(:account)')
         .setParameters({ account: u.account })
         .getOne();
 
