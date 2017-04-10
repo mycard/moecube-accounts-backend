@@ -67,8 +67,8 @@ createConnection({
     entities: [User, Token],
     autoSchemaSync: true,
     logging: {
-        logQueries: true,
-        logFailedQueryError: true,
+        logQueries: process.env["NODE_ENV"] == 'development' && true,
+        logFailedQueryError: process.env["NODE_ENV"] == 'development' && true,
     }
 }).then(conncection => {
 
