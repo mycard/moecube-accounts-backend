@@ -10,6 +10,8 @@ import { Token, User } from './src/model';
 
 const app = new Koa();
 
+app.proxy = true;
+
 const logger = log4js.getLogger();
 
 app.use(async (ctx, next) => {
@@ -67,10 +69,10 @@ createConnection({
     entities: [User, Token],
     autoSchemaSync: true,
     logging: {
-        logQueries: process.env["NODE_ENV"] == 'development' && true,
-        logFailedQueryError: process.env["NODE_ENV"] == 'development' && true,
+        logQueries: process.env['NODE_ENV'] === 'development',
+        logFailedQueryError: process.env['NODE_ENV'] === 'development',
     }
-}).then(conncection => {
+}).then(() => {
 
     app.listen(3000, () => {
         console.log('Server is running at port  %s', 3000);
