@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "node server.js",
-    "dev": "cross-env NODE_ENV=development nodemon $NODE_DEBUG_OPTION server.js",
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
     "tsc": "tsc",
     "prestart": "tsc"
   },
@@ -10,6 +10,7 @@
     "aliyun-sdk": "^1.9.22",
     "async-busboy": "^0.4.0",
     "bluebird": "^3.5.0",
+    "handlebars": "^4.0.6",
     "jsonwebtoken": "^7.3.0",
     "koa": "next",
     "koa-bodyparser": "next",
