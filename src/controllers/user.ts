@@ -163,3 +163,22 @@ export const UpdateAccount = async (ctx: Context) => {
     ctx.body = await userRep.persist(user);
 
 };
+
+
+export const legacyYGOProAuth = async (ctx: Context) => {
+    const userRepository = getEntityManager().getRepository(User);
+    const user = await userRepository.findOne({ username: ctx.params.username });
+    if (!user) {
+        return ctx.throw(404);
+    }
+    ctx.body = { user };
+};
+
+export const legacyYGOProAvatar = async (ctx: Context) => {
+    const userRepository = getEntityManager().getRepository(User);
+    const user = await userRepository.findOne({ username: ctx.params.username });
+    if (!user) {
+        return ctx.throw(404);
+    }
+    ctx.redirect(user.avatarURL());
+};
