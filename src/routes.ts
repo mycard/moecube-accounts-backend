@@ -19,8 +19,8 @@ router.post('/upload/image', upload.UploadImage);
 router.patch('/reset', auth.resetPassword);
 
 // 给现有的 ygopro 服务用的兼容接口
-router.get('/user/:username.json', user.legacyYGOProAuth);
-router.get('/user/:username.png', user.legacyYGOProAvatar);
+router.get('/users/:username.json', user.legacyYGOProAuth);
+router.get('/users/:username.png', user.legacyYGOProAvatar);
 
 
 export default router;
