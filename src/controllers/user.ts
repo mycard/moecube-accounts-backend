@@ -182,3 +182,12 @@ export const legacyYGOProAvatar = async (ctx: Context) => {
     }
     ctx.redirect(user.avatarURL());
 };
+
+export const getUserAvatar = async (ctx: Context) => {
+    const userRepository = getEntityManager().getRepository(User);
+    const user = await userRepository.findOne({ username: ctx.params.username });
+    if (!user) {
+        return ctx.throw(404);
+    }
+    ctx.body = user.avatarURL()
+};
