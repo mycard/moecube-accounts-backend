@@ -9,6 +9,9 @@ import * as uuid from 'uuid';
 import views from '../../views';
 import { URL } from 'url';
 
+var Filter = require('bad-words-chinese');
+var dirtyWords = require('../dirtyWordsChinese.json');
+var filter = new Filter({ chineseList: dirtyWords.words });
 
 export const checkUserExists = async (ctx: Context) => {
 
@@ -19,6 +22,14 @@ export const checkUserExists = async (ctx: Context) => {
         user_id: ctx.request.body.user_id || -1
     };
 
+    let isProfane = filter.isProfane(u.username)
+
+    if(isProfane){
+        ctx.body = {
+            "isProfane":"true"
+        };
+        return;
+    }
 
     const userRep = getEntityManager().getRepository(User);
 
@@ -28,6 +39,7 @@ export const checkUserExists = async (ctx: Context) => {
         .orWhere('lower("user"."email") = lower(:email) AND user.id != :user_id')
         .setParameters({ username: u.username, email: u.email, user_id: u.user_id })
         .getOne();
+
 
     if (user) {
         ctx.body = user;
