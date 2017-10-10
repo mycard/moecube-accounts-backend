@@ -18,7 +18,8 @@ export const UploadImage = async (ctx: Context) => {
         const { files } = await busboy(ctx.req);
         ctx.body = await Promise.all(files.map(async file => {
 
-            const ext = mime.extension(file.mime);
+            const ext = mime.getExtension(file.mime) || "x";
+
             if (['png', 'jpg', 'jpeg', 'gif', 'webp'].indexOf(ext) === -1) {
                 throw new Error('Unsupported image type');
             }
