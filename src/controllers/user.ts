@@ -1,5 +1,5 @@
 import { Context } from 'koa';
-import { Token, User } from '../model';
+import {Token, User, UserNameChangeHistory} from '../model';
 import * as crypto from 'crypto';
 import * as Bluebird from 'bluebird';
 import { getEntityManager } from 'typeorm';
@@ -128,6 +128,11 @@ export const UpdateAccount = async (ctx: Context) => {
         if (exists) {
             ctx.throw('i_username_exists', 400);
         }
+
+
+        const historyRep = getEntityManager().getRepository(UserNameChangeHistory);
+        let changeHistory = new UserNameChangeHistory(0, user.username, u.username);
+        historyRep.persist(changeHistory);
 
         user.username = u.username;
     }
