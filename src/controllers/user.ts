@@ -129,10 +129,11 @@ export const UpdateAccount = async (ctx: Context) => {
             ctx.throw('i_username_exists', 400);
         }
 
-
-        const historyRep = getEntityManager().getRepository(UserNameChangeHistory);
-        let changeHistory = new UserNameChangeHistory(user.username, u.username);
-        historyRep.persist(changeHistory);
+        if (u.username != user.username) {
+            const historyRep = getEntityManager().getRepository(UserNameChangeHistory);
+            let changeHistory = new UserNameChangeHistory(user.username, u.username);
+            historyRep.persist(changeHistory);
+        }
 
         user.username = u.username;
     }
