@@ -6,7 +6,7 @@ import router from './src/routes';
 import privateRouter from './src/privateRoutes';
 import { createConnection } from 'typeorm';
 import config from './config';
-import { Token, User } from './src/model';
+import {Token, User, UserNameChangeHistory} from './src/model';
 
 const app = new Koa();
 
@@ -66,7 +66,7 @@ createConnection({
         type: 'postgres',
         url: config.DATABASE
     },
-    entities: [User, Token],
+    entities: [User, Token, UserNameChangeHistory],
     autoSchemaSync: true,
     logging: {
         logQueries: process.env['NODE_ENV'] === 'development',
