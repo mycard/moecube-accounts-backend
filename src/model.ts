@@ -112,8 +112,8 @@ export interface SignUp {
 @Entity('username_change_history')
 export class UserNameChangeHistory {
 
-    @Column(ColumnTypes.INT)
-    uid: number;
+    @PrimaryGeneratedColumn(ColumnTypes.INTEGER)
+    id: number;
     @Column(ColumnTypes.STRING)
     old_username: string;
     @Column(ColumnTypes.STRING)
@@ -121,8 +121,7 @@ export class UserNameChangeHistory {
     @UpdateDateColumn()
     change_time: Date;
 
-    constructor(uid: number, old_username: string, new_username: string) {
-        this.uid = uid;
+    constructor(old_username: string, new_username: string) {
         this.old_username = old_username;
         this.new_username = new_username;
         this.change_time = new Date();

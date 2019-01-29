@@ -131,7 +131,7 @@ export const UpdateAccount = async (ctx: Context) => {
 
 
         const historyRep = getEntityManager().getRepository(UserNameChangeHistory);
-        let changeHistory = new UserNameChangeHistory(0, user.username, u.username);
+        let changeHistory = new UserNameChangeHistory(user.username, u.username);
         historyRep.persist(changeHistory);
 
         user.username = u.username;
