@@ -74,6 +74,7 @@ export const UpdateProfiles = async (ctx: Context) => {
 
     await getEntityManager().persist(_user);
 
+    ctx.status = 200;
     ctx.body = _user;
 
 };
@@ -178,8 +179,8 @@ export const UpdateAccount = async (ctx: Context) => {
         }
     }
 
+    ctx.status = 200;
     ctx.body = await userRep.persist(user);
-
 };
 
 
