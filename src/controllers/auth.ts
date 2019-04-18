@@ -246,5 +246,6 @@ export const authUser = async (ctx: Context) => {
     const { user } = ctx.state;
     const userReq = getEntityManager().getRepository(User);
 
+    ctx.status = 200;
     ctx.body = await userReq.findOne({ id: user.id });
 };
