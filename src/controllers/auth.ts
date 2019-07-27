@@ -116,6 +116,8 @@ export const signup = async (ctx: Context) => {
         subject: 'MoeCube 账号邮箱验证',
         text: `单击链接 或将链接复制到网页地址栏并回车 来激活账号 ${url}`,
         html: views.activate({ locale: 'zh-CN', username: user.username, url })
+    }).catch(function(error) {
+        console.log(`Failed to send mail to ${user.username}<${user.email}>`);
     });
 
     const token = createToken({
