@@ -2,18 +2,21 @@ import { Context } from 'koa';
 import { OSS } from 'aliyun-sdk';
 import config from '../../config';
 import * as busboy from 'async-busboy';
-import * as  mime from 'mime';
+import * as mime from 'mime';
 import * as uuid from 'uuid';
-import * as Client from 'aliyun-oss-upload-stream';
-const ossStream = Client(new OSS({
-    accessKeyId: config.OSS.OSS_ACCESS_ID,
-    secretAccessKey: config.OSS.OSS_ACCESS_KEY,
+import * as S3 from 'aws-sdk/clients/s3';
+
+const bucket = new S3({
+    apiVersion: '2006-03-01',
     endpoint: config.OSS.OSS_ENDPOINT,
-    apiVersion: '2013-10-15'
-}));
+    credentials: {
+      accessKeyId: config.OSS.OSS_ACCESS_ID,
+      secretAccessKey: config.OSS.OSS_ACCESS_KEY
+    }
+});
+
 
 export const UploadImage = async (ctx: Context) => {
-
     try {
         const { files } = await busboy(ctx.req);
         ctx.body = await Promise.all(files.map(async file => {
@@ -26,20 +29,13 @@ export const UploadImage = async (ctx: Context) => {
 
             const filename = `avatars/${uuid.v1()}`;
 
-            const upload = ossStream.upload({
+            const result = await bucket.upload({
                 Bucket: config.OSS.OSS_BUCKET,
                 Key: filename,
-                ContentType: file.mimeType
-            });
-
-            upload.minPartSize(1048576); // 1M，表示每块part大小至少大于1M
-
-            file.pipe(upload);
-
-            return await new Promise((resolve, reject) => {
-                upload.on('error', reject);
-                upload.on('uploaded', resolve);
-            });
+                ContentType: file.mimeType,
+                Body: file
+            }).promise();
+            return result;
         }));
     } catch (err) {
         ctx.throw(403, err);
