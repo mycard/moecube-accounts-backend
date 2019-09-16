@@ -27,7 +27,7 @@ export const UploadImage = async (ctx: Context) => {
                 throw new Error('Unsupported image type');
             }
 
-            const filename = `avatars/${uuid.v1()}`;
+            const filename = `avatars/${uuid.v1()}.${ext}`;
 
             const result = await bucket.upload({
                 Bucket: config.OSS.OSS_BUCKET,
