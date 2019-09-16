@@ -12,6 +12,6 @@ jobs:
     - uses: actions/checkout@v1
     - name: Build the Docker image
       run: |
-        docker build . --tag mycard/moecube-accounts-backend
+        docker build . --tag moecube/accounts-backend
         docker login --username ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }}
-        docker push mycard/moecube-accounts-backend
+        docker push moecube/accounts-backend
