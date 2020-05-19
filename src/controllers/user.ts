@@ -132,7 +132,7 @@ export const UpdateAccount = async (ctx: Context) => {
 
         if (u.username != user.username) {
             const historyRep = getEntityManager().getRepository(UserNameChangeHistory);
-            let changeHistory = new UserNameChangeHistory(user.username, u.username);
+            let changeHistory = new UserNameChangeHistory(user.username, u.username, u.user_id);
             historyRep.persist(changeHistory);
         }
 

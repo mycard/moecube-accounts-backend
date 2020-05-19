@@ -114,6 +114,8 @@ export class UserNameChangeHistory {
 
     @PrimaryGeneratedColumn(ColumnTypes.INTEGER)
     id: number;
+    @Column(ColumnTypes.INTEGER)
+    userid: number;
     @Column(ColumnTypes.STRING)
     old_username: string;
     @Column(ColumnTypes.STRING)
@@ -121,9 +123,10 @@ export class UserNameChangeHistory {
     @UpdateDateColumn()
     change_time: Date;
 
-    constructor(old_username: string, new_username: string) {
+    constructor(old_username: string, new_username: string, userid: number) {
         this.old_username = old_username;
         this.new_username = new_username;
+        this.userid = userid;
         this.change_time = new Date();
     }
 
