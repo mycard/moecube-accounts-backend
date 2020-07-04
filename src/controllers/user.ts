@@ -56,6 +56,10 @@ export const UpdateProfiles = async (ctx: Context) => {
         ctx.throw(400);
     }
 
+    if (user.username && process.env.NO_CHANGE_USERNAME) {
+        ctx.throw("Changing username is currently not allowed.", 400);
+    }
+
     const userRep = getEntityManager().getRepository(User);
 
     let _user: User | undefined = await userRep
