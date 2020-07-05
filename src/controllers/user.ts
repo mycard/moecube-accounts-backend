@@ -135,6 +135,13 @@ export const UpdateAccount = async (ctx: Context) => {
         }
 
         if (u.username != user.username) {
+            //================
+            // 关闭用户名变更
+            //----------------
+            ctx.status = 403;
+            ctx.body = "Change username banished by administrator. Please contact mycard.";
+            return;
+            //================
             const historyRep = getEntityManager().getRepository(UserNameChangeHistory);
             let changeHistory = new UserNameChangeHistory(user.username, u.username, u.user_id);
             historyRep.persist(changeHistory);
