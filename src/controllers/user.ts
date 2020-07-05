@@ -142,9 +142,6 @@ export const UpdateAccount = async (ctx: Context) => {
             ctx.body = "Change username banished by administrator. Please contact mycard.";
             return;
             //================
-            const historyRep = getEntityManager().getRepository(UserNameChangeHistory);
-            let changeHistory = new UserNameChangeHistory(user.username, u.username, u.user_id);
-            historyRep.persist(changeHistory);
         }
 
         user.username = u.username;
