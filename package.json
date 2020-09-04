@@ -12,7 +12,7 @@
     "aws-sdk": "^2.512.0",
     "bad-words-chinese": "^1.0.2",
     "bluebird": "^3.5.0",
-    "handlebars": "^4.0.6",
+    "handlebars": "^4.4.5",
     "jsonwebtoken": "^7.3.0",
     "koa": "next",
     "koa-bodyparser": "next",
